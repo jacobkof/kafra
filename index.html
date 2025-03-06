@@ -73,6 +73,7 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
+      position: relative; /* Para overlay de admin */
     }
     .banner-info {
       flex: 1;
@@ -93,6 +94,36 @@
     }
 
     /*******************************************************
+     * Overlay para editar imágenes (banner, categorías, etc.)
+     *******************************************************/
+    .edit-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+      border-radius: 4px;
+    }
+    .hover-parent:hover .edit-overlay {
+      opacity: 1;
+    }
+    .edit-overlay button {
+      background-color: #3483fa;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .edit-overlay button:hover {
+      background-color: #2968c8;
+    }
+
+    /*******************************************************
      * CATEGORÍAS (SCROLL HORIZONTAL)
      *******************************************************/
     .categories {
@@ -107,6 +138,7 @@
       width: 80px;
       text-align: center;
       cursor: pointer;
+      position: relative; /* Para overlay */
     }
     .cat-item img {
       width: 60px;
@@ -240,12 +272,6 @@
       padding: 10px;
       position: relative;
     }
-    .admin-product-card img {
-      max-width: 100%;
-      height: auto;
-      margin-bottom: 5px;
-      border-radius: 4px;
-    }
     .admin-btns {
       position: absolute;
       top: 5px;
@@ -265,7 +291,6 @@
     .admin-btns button:hover {
       background-color: #2968c8;
     }
-
   </style>
 </head>
 <body>
@@ -284,40 +309,30 @@
 
 <!-- CONTENEDOR PRINCIPAL -->
 <div id="mainContent">
-  <!-- Banner principal -->
-  <div class="banner">
+  <!-- Banner principal (imagen se cargará dinámicamente con JS) -->
+  <div class="banner hover-parent">
     <div class="banner-info">
       <h2>La mejor calidad en abarrotes</h2>
       <p>Encuentra todo lo que necesitas para tu despensa.</p>
     </div>
     <div class="banner-image">
-      <!-- Imagen de banner (puedes sustituir con una URL real) -->
-      <img src="https://via.placeholder.com/150?text=KAFRA+Banner" alt="Banner KAFRA">
+      <img id="bannerImg" src="" alt="Banner KAFRA">
+    </div>
+    <!-- Overlay para cambiar imagen del banner (solo visible si admin) -->
+    <div class="edit-overlay" id="bannerOverlay" style="display:none;">
+      <button onclick="changeBannerImage()">Cambiar Banner</button>
     </div>
   </div>
 
-  <!-- Carrusel de categorías -->
-  <div class="categories">
-    <div class="cat-item">
-      <img src="https://via.placeholder.com/60?text=Frutas" alt="Frutas y Verduras">
-      <p>Frutas y Verduras</p>
+  <!-- Carrusel de categorías (se cargarán dinámicamente con JS) -->
+  <div class="categories" id="categoriesContainer">
+    <!-- Ejemplo:
+    <div class="cat-item hover-parent">
+      <img src="..." alt="...">
+      <p>...</p>
+      <div class="edit-overlay">Cambiar Imagen</div>
     </div>
-    <div class="cat-item">
-      <img src="https://via.placeholder.com/60?text=Despensa" alt="Despensa">
-      <p>Despensa</p>
-    </div>
-    <div class="cat-item">
-      <img src="https://via.placeholder.com/60?text=Lacteos" alt="Lácteos y Huevo">
-      <p>Lácteos y Huevo</p>
-    </div>
-    <div class="cat-item">
-      <img src="https://via.placeholder.com/60?text=Hogar" alt="Limpieza y Hogar">
-      <p>Limpieza y Hogar</p>
-    </div>
-    <div class="cat-item">
-      <img src="https://via.placeholder.com/60?text=Bebidas" alt="Bebidas">
-      <p>Bebidas</p>
-    </div>
+    -->
   </div>
 
   <!-- Sección de productos destacados -->
@@ -337,19 +352,56 @@
   <p>&copy; 2025 KAFRA - Todos los derechos reservados</p>
 </footer>
 
+<!-- Input file global para edición rápida de imágenes -->
+<input type="file" id="globalFileInput" accept="image/*" style="display:none;" />
+
 <script>
   /************************************************************
-   * SIMULACIÓN DE DATOS / LOCALSTORAGE
+   * CLAVES LOCALSTORAGE
    ************************************************************/
   const LS_USERS_KEY = "kafraUsers";
   const LS_PRODUCTS_KEY = "kafraProducts";
+  const LS_SITE_KEY = "kafraSiteSettings";
 
-  // Inicializar datos en localStorage si no existen
+  let currentUser = null; // Simula sesión
+  let currentEditing = { banner: false, categoryId: null, productId: null };
+
+  /************************************************************
+   * DATOS DE SITIO (BANNER + CATEGORÍAS)
+   ************************************************************/
+  // Inicializa la configuración del sitio si no existe
+  function initSiteSettings() {
+    if(!localStorage.getItem(LS_SITE_KEY)) {
+      const defaultSettings = {
+        bannerImage: "https://via.placeholder.com/150?text=KAFRA+Banner",
+        categories: [
+          { id: 1, name: "Frutas y Verduras", imagen: "https://via.placeholder.com/60?text=Frutas" },
+          { id: 2, name: "Despensa",          imagen: "https://via.placeholder.com/60?text=Despensa" },
+          { id: 3, name: "Lácteos y Huevo",   imagen: "https://via.placeholder.com/60?text=Lacteos" },
+          { id: 4, name: "Limpieza y Hogar",  imagen: "https://via.placeholder.com/60?text=Hogar" },
+          { id: 5, name: "Bebidas",          imagen: "https://via.placeholder.com/60?text=Bebidas" }
+        ]
+      };
+      localStorage.setItem(LS_SITE_KEY, JSON.stringify(defaultSettings));
+    }
+  }
+  function getSiteSettings() {
+    return JSON.parse(localStorage.getItem(LS_SITE_KEY));
+  }
+  function setSiteSettings(settings) {
+    localStorage.setItem(LS_SITE_KEY, JSON.stringify(settings));
+  }
+
+  /************************************************************
+   * DATOS DE PRODUCTOS Y USUARIOS
+   ************************************************************/
   function initLocalData() {
+    // Usuarios
     if(!localStorage.getItem(LS_USERS_KEY)) {
       const defaultUsers = [{ username: "admin", password: "123" }];
       localStorage.setItem(LS_USERS_KEY, JSON.stringify(defaultUsers));
     }
+    // Productos
     if(!localStorage.getItem(LS_PRODUCTS_KEY)) {
       // 5 productos iniciales para "Productos Destacados"
       const defaultProducts = [
@@ -392,9 +444,6 @@
       localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(defaultProducts));
     }
   }
-  initLocalData();
-
-  // Helpers
   function getUsers() {
     return JSON.parse(localStorage.getItem(LS_USERS_KEY)) || [];
   }
@@ -408,15 +457,44 @@
     localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(p));
   }
 
-  let currentUser = null; // Simula sesión
-
   /************************************************************
-   * RENDER DE PRODUCTOS DESTACADOS EN HOME
+   * MOSTRAR HOME (BANNER + CATEGORÍAS + PRODUCTOS)
    ************************************************************/
   function showHome() {
     document.getElementById("dynamicSection").classList.add("hidden");
     document.getElementById("mainContent").classList.remove("hidden");
 
+    // 1) Cargar configuración del sitio
+    const site = getSiteSettings();
+    const isAdmin = (currentUser && currentUser.username === "admin");
+
+    // Banner
+    const bannerImg = document.getElementById("bannerImg");
+    bannerImg.src = site.bannerImage || "";
+    // Mostrar overlay si es admin
+    document.getElementById("bannerOverlay").style.display = isAdmin ? "flex" : "none";
+
+    // Categorías
+    const catContainer = document.getElementById("categoriesContainer");
+    catContainer.innerHTML = "";
+    site.categories.forEach(cat => {
+      const div = document.createElement("div");
+      div.classList.add("cat-item", "hover-parent");
+      div.innerHTML = `
+        <img src="${cat.imagen}" alt="${cat.name}" />
+        <p>${cat.name}</p>
+      `;
+      // Overlay para admin
+      if(isAdmin) {
+        const overlay = document.createElement("div");
+        overlay.className = "edit-overlay";
+        overlay.innerHTML = `<button onclick="changeCategoryImage(${cat.id})">Cambiar Imagen</button>`;
+        div.appendChild(overlay);
+      }
+      catContainer.appendChild(div);
+    });
+
+    // Productos Destacados
     const featuredContainer = document.getElementById("featuredProducts");
     const products = getProducts();
     featuredContainer.innerHTML = "";
@@ -436,6 +514,66 @@
   function addToCart(id) {
     alert("Producto " + id + " agregado al carrito (demo).");
   }
+
+  /************************************************************
+   * CAMBIAR BANNER
+   ************************************************************/
+  function changeBannerImage() {
+    // Indica que vamos a cambiar la imagen del banner
+    currentEditing.banner = true;
+    currentEditing.categoryId = null;
+    currentEditing.productId = null;
+    document.getElementById("globalFileInput").click();
+  }
+
+  /************************************************************
+   * CAMBIAR IMAGEN DE CATEGORÍA
+   ************************************************************/
+  function changeCategoryImage(catId) {
+    currentEditing.banner = false;
+    currentEditing.categoryId = catId;
+    currentEditing.productId = null;
+    document.getElementById("globalFileInput").click();
+  }
+
+  /************************************************************
+   * INPUT FILE GLOBAL (maneja banner/categoría/producto)
+   ************************************************************/
+  document.getElementById("globalFileInput").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const result = e.target.result;
+
+      // 1) Si es banner
+      if(currentEditing.banner) {
+        const site = getSiteSettings();
+        site.bannerImage = result;
+        setSiteSettings(site);
+        showHome();
+      }
+      // 2) Si es categoría
+      else if(currentEditing.categoryId) {
+        const site = getSiteSettings();
+        const catIndex = site.categories.findIndex(c => c.id === currentEditing.categoryId);
+        if(catIndex > -1) {
+          site.categories[catIndex].imagen = result;
+          setSiteSettings(site);
+          showHome();
+        }
+      }
+      // 3) (Opcional) Si quisieras también cambiar imagen de producto directamente
+      // else if (currentEditing.productId) {
+      //   ...
+      // }
+
+      // Reset
+      currentEditing = { banner: false, categoryId: null, productId: null };
+    }
+    reader.readAsDataURL(file);
+  });
 
   /************************************************************
    * LOGIN
@@ -560,14 +698,15 @@
         <label>Categoría:</label>
         <select name="categoria" required>
           <option value="">-- Selecciona --</option>
-          <option value="Frutas y Verduras" ${productData.categoria==="Frutas y Verduras"?"selected":""}>Frutas y Verduras</option>
-          <option value="Despensa" ${productData.categoria==="Despensa"?"selected":""}>Despensa</option>
-          <option value="Lácteos y Huevo" ${productData.categoria==="Lácteos y Huevo"?"selected":""}>Lácteos y Huevo</option>
-          <option value="Limpieza y Hogar" ${productData.categoria==="Limpieza y Hogar"?"selected":""}>Limpieza y Hogar</option>
-          <option value="Bebidas" ${productData.categoria==="Bebidas"?"selected":""}>Bebidas</option>
+          <option value="Frutas y Verduras"  ${productData.categoria==="Frutas y Verduras" ? "selected":""}>Frutas y Verduras</option>
+          <option value="Despensa"           ${productData.categoria==="Despensa"          ? "selected":""}>Despensa</option>
+          <option value="Lácteos y Huevo"    ${productData.categoria==="Lácteos y Huevo"   ? "selected":""}>Lácteos y Huevo</option>
+          <option value="Limpieza y Hogar"   ${productData.categoria==="Limpieza y Hogar"  ? "selected":""}>Limpieza y Hogar</option>
+          <option value="Bebidas"            ${productData.categoria==="Bebidas"           ? "selected":""}>Bebidas</option>
         </select>
         <label>URL de la Imagen:</label>
         <input type="text" name="imagen" value="${productData.imagen}" placeholder="https://..." required />
+        <br><br>
         <button type="submit">${isEdit ? "Guardar" : "Crear"}</button>
       </form>
     `;
@@ -610,7 +749,11 @@
   /************************************************************
    * INICIALIZACIÓN
    ************************************************************/
-  showHome(); // Mostrar inicio por defecto
+  // Primero inicializamos configuraciones del sitio y datos
+  initSiteSettings();
+  initLocalData();
+  // Mostramos la página principal
+  showHome();
 </script>
 </body>
 </html>
