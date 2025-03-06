@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>KAFRA - Tu Tienda de Abarrotes</title>
+  <!-- Para vista móvil -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /*******************************************************
+     * RESET BÁSICO
+     *******************************************************/
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #333;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /*******************************************************
+     * ENCABEZADO (Estilo Mercado Libre)
+     *******************************************************/
+    header {
+      background-color: #fff159; /* Amarillo ML */
+      color: #333;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 15px;
+    }
+    nav li {
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: color 0.2s;
+      font-weight: 500;
+    }
+    nav li:hover {
+      color: #3483fa; /* Azul ML */
+    }
+
+    /*******************************************************
+     * CONTENEDOR PRINCIPAL
+     *******************************************************/
+    #mainContent {
+      padding: 10px;
+    }
+
+    /*******************************************************
+     * BANNER PRINCIPAL
+     *******************************************************/
+    .banner {
+      background-color: #f5f5f5; 
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .banner-info {
+      flex: 1;
+      margin-right: 10px;
+    }
+    .banner-info h2 {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .banner-info p {
+      font-size: 0.9em;
+      color: #555;
+    }
+    .banner-image img {
+      max-width: 150px;
+      border-radius: 5px;
+    }
+
+    /*******************************************************
+     * CATEGORÍAS (SCROLL HORIZONTAL)
+     *******************************************************/
+    .categories {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto; /* Scroll horizontal */
+      margin-bottom: 15px;
+      padding: 5px 0;
+    }
+    .cat-item {
+      flex: 0 0 auto;
+      width: 80px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .cat-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+    }
+    .cat-item p {
+      font-size: 0.8em;
+      color: #444;
+    }
+
+    /*******************************************************
+     * SECCIÓN DE PRODUCTOS DESTACADOS
+     *******************************************************/
+    .products-section {
+      margin-bottom: 20px;
+    }
+    .products-section h3 {
+      font-size: 1em;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .product-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      text-align: center;
+      padding: 10px;
+      transition: transform 0.2s;
+    }
+    .product-card:hover {
+      transform: scale(1.02);
+    }
+    .product-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+    .product-card .price {
+      color: #e74c3c;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .product-card button {
+      background-color: #3483fa; /* Azul ML */
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.8em;
+      border-radius: 3px;
+    }
+    .product-card button:hover {
+      background-color: #2968c8; /* Azul ML más oscuro */
+    }
+
+    /*******************************************************
+     * FOOTER (Estilo Mercado Libre)
+     *******************************************************/
+    footer {
+      background-color: #fff159; /* Amarillo ML */
+      text-align: center;
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 0.85em;
+      color: #333;
+    }
+
+    /*******************************************************
+     * SECCIONES DINÁMICAS: ADMIN, LOGIN, ETC.
+     *******************************************************/
+    #dynamicSection {
+      padding: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    /* Formulario */
+    form {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    form label {
+      display: block;
+      margin: 5px 0 2px;
+      font-weight: bold;
+      font-size: 0.85em;
+    }
+    form input, form select {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 0.85em;
+    }
+    form button {
+      background-color: #3483fa;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.85em;
+      border-radius: 3px;
+    }
+    form button:hover {
+      background-color: #2968c8;
+    }
+    /* Lista de productos en admin */
+    .admin-product-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .admin-product-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      position: relative;
+    }
+    .admin-product-card img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 5px;
+      border-radius: 4px;
+    }
+    .admin-btns {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      gap: 5px;
+    }
+    .admin-btns button {
+      background-color: #3483fa;
+      color: #fff;
+      border: none;
+      padding: 3px 6px;
+      cursor: pointer;
+      font-size: 0.75em;
+      border-radius: 3px;
+    }
+    .admin-btns button:hover {
+      background-color: #2968c8;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ENCABEZADO -->
+<header>
+  <div class="logo">KAFRA</div>
+  <nav>
+    <ul>
+      <li onclick="showHome()">Inicio</li>
+      <li onclick="showAdmin()">Admin</li>
+      <li onclick="showLogin()">Login</li>
+    </ul>
+  </nav>
+</header>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div id="mainContent">
+  <!-- Banner principal -->
+  <div class="banner">
+    <div class="banner-info">
+      <h2>La mejor calidad en abarrotes</h2>
+      <p>Encuentra todo lo que necesitas para tu despensa.</p>
+    </div>
+    <div class="banner-image">
+      <!-- Imagen de banner (puedes sustituir con una URL real) -->
+      <img src="https://via.placeholder.com/150?text=KAFRA+Banner" alt="Banner KAFRA">
+    </div>
+  </div>
+
+  <!-- Carrusel de categorías -->
+  <div class="categories">
+    <div class="cat-item">
+      <img src="https://via.placeholder.com/60?text=Frutas" alt="Frutas y Verduras">
+      <p>Frutas y Verduras</p>
+    </div>
+    <div class="cat-item">
+      <img src="https://via.placeholder.com/60?text=Despensa" alt="Despensa">
+      <p>Despensa</p>
+    </div>
+    <div class="cat-item">
+      <img src="https://via.placeholder.com/60?text=Lacteos" alt="Lácteos y Huevo">
+      <p>Lácteos y Huevo</p>
+    </div>
+    <div class="cat-item">
+      <img src="https://via.placeholder.com/60?text=Hogar" alt="Limpieza y Hogar">
+      <p>Limpieza y Hogar</p>
+    </div>
+    <div class="cat-item">
+      <img src="https://via.placeholder.com/60?text=Bebidas" alt="Bebidas">
+      <p>Bebidas</p>
+    </div>
+  </div>
+
+  <!-- Sección de productos destacados -->
+  <div class="products-section">
+    <h3>Productos Destacados</h3>
+    <div class="product-grid" id="featuredProducts">
+      <!-- Se rellenará dinámicamente con JS -->
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN DINÁMICA (ADMIN, LOGIN, ETC.) -->
+<div id="dynamicSection" class="hidden"></div>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2025 KAFRA - Todos los derechos reservados</p>
+</footer>
+
+<script>
+  /************************************************************
+   * SIMULACIÓN DE DATOS / LOCALSTORAGE
+   ************************************************************/
+  const LS_USERS_KEY = "kafraUsers";
+  const LS_PRODUCTS_KEY = "kafraProducts";
+
+  // Inicializar datos en localStorage si no existen
+  function initLocalData() {
+    if(!localStorage.getItem(LS_USERS_KEY)) {
+      const defaultUsers = [{ username: "admin", password: "123" }];
+      localStorage.setItem(LS_USERS_KEY, JSON.stringify(defaultUsers));
+    }
+    if(!localStorage.getItem(LS_PRODUCTS_KEY)) {
+      // 5 productos iniciales para "Productos Destacados"
+      const defaultProducts = [
+        {
+          id: 1,
+          nombre: "Manzanas Golden",
+          precio: 30.00,
+          categoria: "Frutas y Verduras",
+          imagen: "https://via.placeholder.com/200?text=Manzanas+Golden"
+        },
+        {
+          id: 2,
+          nombre: "Leche Deslactosada",
+          precio: 22.50,
+          categoria: "Lácteos y Huevo",
+          imagen: "https://via.placeholder.com/200?text=Leche+Deslactosada"
+        },
+        {
+          id: 3,
+          nombre: "Detergente Líquido",
+          precio: 45.00,
+          categoria: "Limpieza y Hogar",
+          imagen: "https://via.placeholder.com/200?text=Detergente+Líquido"
+        },
+        {
+          id: 4,
+          nombre: "Huevos de Rancho (30 pzas)",
+          precio: 60.00,
+          categoria: "Lácteos y Huevo",
+          imagen: "https://via.placeholder.com/200?text=Huevos"
+        },
+        {
+          id: 5,
+          nombre: "Refresco de Cola 2L",
+          precio: 18.00,
+          categoria: "Bebidas",
+          imagen: "https://via.placeholder.com/200?text=Refresco"
+        }
+      ];
+      localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(defaultProducts));
+    }
+  }
+  initLocalData();
+
+  // Helpers
+  function getUsers() {
+    return JSON.parse(localStorage.getItem(LS_USERS_KEY)) || [];
+  }
+  function setUsers(u) {
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(u));
+  }
+  function getProducts() {
+    return JSON.parse(localStorage.getItem(LS_PRODUCTS_KEY)) || [];
+  }
+  function setProducts(p) {
+    localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(p));
+  }
+
+  let currentUser = null; // Simula sesión
+
+  /************************************************************
+   * RENDER DE PRODUCTOS DESTACADOS EN HOME
+   ************************************************************/
+  function showHome() {
+    document.getElementById("dynamicSection").classList.add("hidden");
+    document.getElementById("mainContent").classList.remove("hidden");
+
+    const featuredContainer = document.getElementById("featuredProducts");
+    const products = getProducts();
+    featuredContainer.innerHTML = "";
+    products.forEach(prod => {
+      const card = document.createElement("div");
+      card.classList.add("product-card");
+      card.innerHTML = `
+        <img src="${prod.imagen}" alt="${prod.nombre}" />
+        <h4 style="font-size:0.9em;">${prod.nombre}</h4>
+        <p class="price">$${prod.precio.toFixed(2)}</p>
+        <button onclick="addToCart(${prod.id})">Agregar al Carrito</button>
+      `;
+      featuredContainer.appendChild(card);
+    });
+  }
+
+  function addToCart(id) {
+    alert("Producto " + id + " agregado al carrito (demo).");
+  }
+
+  /************************************************************
+   * LOGIN
+   ************************************************************/
+  function showLogin() {
+    document.getElementById("mainContent").classList.add("hidden");
+    const dyn = document.getElementById("dynamicSection");
+    dyn.classList.remove("hidden");
+    dyn.innerHTML = "";
+
+    if(currentUser) {
+      dyn.innerHTML = `
+        <h3>Usuario: ${currentUser.username}</h3>
+        <button onclick="handleLogout()">Cerrar Sesión</button>
+      `;
+      return;
+    }
+
+    // Form de login
+    dyn.innerHTML = `
+      <h3>Iniciar Sesión</h3>
+      <form id="loginForm">
+        <label>Usuario:</label>
+        <input type="text" name="username" required />
+        <label>Contraseña:</label>
+        <input type="password" name="password" required />
+        <button type="submit">Ingresar</button>
+      </form>
+    `;
+    const form = document.getElementById("loginForm");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const user = fd.get("username");
+      const pass = fd.get("password");
+
+      const users = getUsers();
+      const found = users.find(u => u.username === user && u.password === pass);
+      if(found) {
+        currentUser = found;
+        alert("Bienvenido " + user);
+        showHome();
+      } else {
+        alert("Credenciales inválidas.");
+      }
+    });
+  }
+
+  function handleLogout() {
+    currentUser = null;
+    alert("Sesión cerrada.");
+    showLogin();
+  }
+
+  /************************************************************
+   * ADMINISTRACIÓN DE PRODUCTOS
+   ************************************************************/
+  function showAdmin() {
+    if(!currentUser) {
+      alert("Debes iniciar sesión para acceder a Admin.");
+      return showLogin();
+    }
+    document.getElementById("mainContent").classList.add("hidden");
+    const dyn = document.getElementById("dynamicSection");
+    dyn.classList.remove("hidden");
+    dyn.innerHTML = `
+      <h3>Administración de Productos</h3>
+      <button onclick="showProductForm()">Agregar Producto</button>
+      <div id="adminProductList" style="margin-top:10px;"></div>
+    `;
+    renderAdminProducts();
+  }
+
+  function renderAdminProducts() {
+    const adminDiv = document.getElementById("adminProductList");
+    const products = getProducts();
+    if(products.length === 0) {
+      adminDiv.innerHTML = "<p>No hay productos.</p>";
+      return;
+    }
+    let html = `<div class="admin-product-list">`;
+    products.forEach(p => {
+      html += `
+        <div class="admin-product-card">
+          <div class="admin-btns">
+            <button onclick="editProduct(${p.id})">✎</button>
+            <button onclick="deleteProduct(${p.id})">🗑</button>
+          </div>
+          <img src="${p.imagen}" alt="${p.nombre}" />
+          <h4 style="font-size:0.9em;">${p.nombre}</h4>
+          <p style="font-size:0.85em; color:#e74c3c;">$${p.precio.toFixed(2)}</p>
+          <p style="font-size:0.75em; color:#666;">${p.categoria}</p>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    adminDiv.innerHTML = html;
+  }
+
+  function showProductForm(id=null) {
+    const dyn = document.getElementById("dynamicSection");
+    let productData = { nombre: "", precio: "", categoria: "", imagen: "" };
+    let isEdit = false;
+
+    if(id) {
+      const products = getProducts();
+      const found = products.find(x => x.id === id);
+      if(found) {
+        productData = found;
+        isEdit = true;
+      }
+    }
+
+    dyn.innerHTML = `
+      <h3>${isEdit ? "Editar" : "Agregar"} Producto</h3>
+      <form id="productForm">
+        <input type="hidden" name="id" value="${isEdit ? productData.id : ""}" />
+        <label>Nombre:</label>
+        <input type="text" name="nombre" value="${productData.nombre}" required />
+        <label>Precio:</label>
+        <input type="number" step="0.01" name="precio" value="${productData.precio}" required />
+        <label>Categoría:</label>
+        <select name="categoria" required>
+          <option value="">-- Selecciona --</option>
+          <option value="Frutas y Verduras" ${productData.categoria==="Frutas y Verduras"?"selected":""}>Frutas y Verduras</option>
+          <option value="Despensa" ${productData.categoria==="Despensa"?"selected":""}>Despensa</option>
+          <option value="Lácteos y Huevo" ${productData.categoria==="Lácteos y Huevo"?"selected":""}>Lácteos y Huevo</option>
+          <option value="Limpieza y Hogar" ${productData.categoria==="Limpieza y Hogar"?"selected":""}>Limpieza y Hogar</option>
+          <option value="Bebidas" ${productData.categoria==="Bebidas"?"selected":""}>Bebidas</option>
+        </select>
+        <label>URL de la Imagen:</label>
+        <input type="text" name="imagen" value="${productData.imagen}" placeholder="https://..." required />
+        <button type="submit">${isEdit ? "Guardar" : "Crear"}</button>
+      </form>
+    `;
+    const form = document.getElementById("productForm");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const product = {
+        id: fd.get("id") ? parseInt(fd.get("id")) : Date.now(),
+        nombre: fd.get("nombre"),
+        precio: parseFloat(fd.get("precio")),
+        categoria: fd.get("categoria"),
+        imagen: fd.get("imagen")
+      };
+
+      const products = getProducts();
+      if(isEdit) {
+        const idx = products.findIndex(x => x.id === product.id);
+        if(idx > -1) products[idx] = product;
+      } else {
+        products.push(product);
+      }
+      setProducts(products);
+      showAdmin();
+    });
+  }
+
+  function editProduct(id) {
+    showProductForm(id);
+  }
+
+  function deleteProduct(id) {
+    if(!confirm("¿Eliminar este producto?")) return;
+    let products = getProducts();
+    products = products.filter(x => x.id !== id);
+    setProducts(products);
+    showAdmin();
+  }
+
+  /************************************************************
+   * INICIALIZACIÓN
+   ************************************************************/
+  showHome(); // Mostrar inicio por defecto
+</script>
+</body>
+</html>
