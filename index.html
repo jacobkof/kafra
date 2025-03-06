@@ -326,13 +326,7 @@
 
   <!-- Carrusel de categorías (se cargarán dinámicamente con JS) -->
   <div class="categories" id="categoriesContainer">
-    <!-- Ejemplo:
-    <div class="cat-item hover-parent">
-      <img src="..." alt="...">
-      <p>...</p>
-      <div class="edit-overlay">Cambiar Imagen</div>
-    </div>
-    -->
+    <!-- Se generarán dinámicamente -->
   </div>
 
   <!-- Sección de productos destacados -->
@@ -369,17 +363,18 @@
   /************************************************************
    * DATOS DE SITIO (BANNER + CATEGORÍAS)
    ************************************************************/
-  // Inicializa la configuración del sitio si no existe
+  // Inicializa la configuración del sitio si no existe en localStorage
   function initSiteSettings() {
     if(!localStorage.getItem(LS_SITE_KEY)) {
       const defaultSettings = {
-        bannerImage: "https://via.placeholder.com/150?text=KAFRA+Banner",
+        // Ruta relativa a la carpeta "imagenes" en tu repositorio
+        bannerImage: "imagenes/banner.jpg",
         categories: [
-          { id: 1, name: "Frutas y Verduras", imagen: "https://via.placeholder.com/60?text=Frutas" },
-          { id: 2, name: "Despensa",          imagen: "https://via.placeholder.com/60?text=Despensa" },
-          { id: 3, name: "Lácteos y Huevo",   imagen: "https://via.placeholder.com/60?text=Lacteos" },
-          { id: 4, name: "Limpieza y Hogar",  imagen: "https://via.placeholder.com/60?text=Hogar" },
-          { id: 5, name: "Bebidas",          imagen: "https://via.placeholder.com/60?text=Bebidas" }
+          { id: 1, name: "Frutas y Verduras", imagen: "imagenes/frutas.png" },
+          { id: 2, name: "Despensa",          imagen: "imagenes/despensa.png" },
+          { id: 3, name: "Lácteos y Huevo",   imagen: "imagenes/lacteos.png" },
+          { id: 4, name: "Limpieza y Hogar",  imagen: "imagenes/hogar.png" },
+          { id: 5, name: "Bebidas",          imagen: "imagenes/bebidas.png" }
         ]
       };
       localStorage.setItem(LS_SITE_KEY, JSON.stringify(defaultSettings));
@@ -403,42 +398,41 @@
     }
     // Productos
     if(!localStorage.getItem(LS_PRODUCTS_KEY)) {
-      // 5 productos iniciales para "Productos Destacados"
       const defaultProducts = [
         {
           id: 1,
           nombre: "Manzanas Golden",
           precio: 30.00,
           categoria: "Frutas y Verduras",
-          imagen: "https://via.placeholder.com/200?text=Manzanas+Golden"
+          imagen: "imagenes/manzanas_golden.jpg"
         },
         {
           id: 2,
           nombre: "Leche Deslactosada",
           precio: 22.50,
           categoria: "Lácteos y Huevo",
-          imagen: "https://via.placeholder.com/200?text=Leche+Deslactosada"
+          imagen: "imagenes/leche_deslactosada.jpg"
         },
         {
           id: 3,
           nombre: "Detergente Líquido",
           precio: 45.00,
           categoria: "Limpieza y Hogar",
-          imagen: "https://via.placeholder.com/200?text=Detergente+Líquido"
+          imagen: "imagenes/detergente_liquido.jpg"
         },
         {
           id: 4,
           nombre: "Huevos de Rancho (30 pzas)",
           precio: 60.00,
           categoria: "Lácteos y Huevo",
-          imagen: "https://via.placeholder.com/200?text=Huevos"
+          imagen: "imagenes/huevos.jpg"
         },
         {
           id: 5,
           nombre: "Refresco de Cola 2L",
           precio: 18.00,
           categoria: "Bebidas",
-          imagen: "https://via.placeholder.com/200?text=Refresco"
+          imagen: "imagenes/refresco_cola.jpg"
         }
       ];
       localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(defaultProducts));
@@ -464,14 +458,12 @@
     document.getElementById("dynamicSection").classList.add("hidden");
     document.getElementById("mainContent").classList.remove("hidden");
 
-    // 1) Cargar configuración del sitio
     const site = getSiteSettings();
     const isAdmin = (currentUser && currentUser.username === "admin");
 
     // Banner
     const bannerImg = document.getElementById("bannerImg");
     bannerImg.src = site.bannerImage || "";
-    // Mostrar overlay si es admin
     document.getElementById("bannerOverlay").style.display = isAdmin ? "flex" : "none";
 
     // Categorías
@@ -484,7 +476,7 @@
         <img src="${cat.imagen}" alt="${cat.name}" />
         <p>${cat.name}</p>
       `;
-      // Overlay para admin
+      // Si es admin, se añade overlay para cambiar imagen
       if(isAdmin) {
         const overlay = document.createElement("div");
         overlay.className = "edit-overlay";
@@ -519,7 +511,6 @@
    * CAMBIAR BANNER
    ************************************************************/
   function changeBannerImage() {
-    // Indica que vamos a cambiar la imagen del banner
     currentEditing.banner = true;
     currentEditing.categoryId = null;
     currentEditing.productId = null;
@@ -537,7 +528,7 @@
   }
 
   /************************************************************
-   * INPUT FILE GLOBAL (maneja banner/categoría/producto)
+   * INPUT FILE GLOBAL (para banner, categorías, productos)
    ************************************************************/
   document.getElementById("globalFileInput").addEventListener("change", function(event) {
     const file = event.target.files[0];
@@ -546,16 +537,12 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       const result = e.target.result;
-
-      // 1) Si es banner
       if(currentEditing.banner) {
         const site = getSiteSettings();
         site.bannerImage = result;
         setSiteSettings(site);
         showHome();
-      }
-      // 2) Si es categoría
-      else if(currentEditing.categoryId) {
+      } else if(currentEditing.categoryId) {
         const site = getSiteSettings();
         const catIndex = site.categories.findIndex(c => c.id === currentEditing.categoryId);
         if(catIndex > -1) {
@@ -564,26 +551,19 @@
           showHome();
         }
       }
-      // 3) (Opcional) Si quisieras también cambiar imagen de producto directamente
-      // else if (currentEditing.productId) {
-      //   ...
-      // }
-
-      // Reset
       currentEditing = { banner: false, categoryId: null, productId: null };
     }
     reader.readAsDataURL(file);
   });
 
   /************************************************************
-   * LOGIN
+   * LOGIN Y GESTIÓN DE SESIÓN
    ************************************************************/
   function showLogin() {
     document.getElementById("mainContent").classList.add("hidden");
     const dyn = document.getElementById("dynamicSection");
     dyn.classList.remove("hidden");
     dyn.innerHTML = "";
-
     if(currentUser) {
       dyn.innerHTML = `
         <h3>Usuario: ${currentUser.username}</h3>
@@ -591,8 +571,6 @@
       `;
       return;
     }
-
-    // Form de login
     dyn.innerHTML = `
       <h3>Iniciar Sesión</h3>
       <form id="loginForm">
@@ -609,7 +587,6 @@
       const fd = new FormData(form);
       const user = fd.get("username");
       const pass = fd.get("password");
-
       const users = getUsers();
       const found = users.find(u => u.username === user && u.password === pass);
       if(found) {
@@ -677,7 +654,6 @@
     const dyn = document.getElementById("dynamicSection");
     let productData = { nombre: "", precio: "", categoria: "", imagen: "" };
     let isEdit = false;
-
     if(id) {
       const products = getProducts();
       const found = products.find(x => x.id === id);
@@ -686,7 +662,6 @@
         isEdit = true;
       }
     }
-
     dyn.innerHTML = `
       <h3>${isEdit ? "Editar" : "Agregar"} Producto</h3>
       <form id="productForm">
@@ -705,7 +680,7 @@
           <option value="Bebidas"            ${productData.categoria==="Bebidas"           ? "selected":""}>Bebidas</option>
         </select>
         <label>URL de la Imagen:</label>
-        <input type="text" name="imagen" value="${productData.imagen}" placeholder="https://..." required />
+        <input type="text" name="imagen" value="${productData.imagen}" placeholder="imagenes/archivo.jpg" required />
         <br><br>
         <button type="submit">${isEdit ? "Guardar" : "Crear"}</button>
       </form>
@@ -721,7 +696,6 @@
         categoria: fd.get("categoria"),
         imagen: fd.get("imagen")
       };
-
       const products = getProducts();
       if(isEdit) {
         const idx = products.findIndex(x => x.id === product.id);
@@ -749,10 +723,9 @@
   /************************************************************
    * INICIALIZACIÓN
    ************************************************************/
-  // Primero inicializamos configuraciones del sitio y datos
+  // Se inicializan las configuraciones del sitio y los datos solo si aún no existen en localStorage.
   initSiteSettings();
   initLocalData();
-  // Mostramos la página principal
   showHome();
 </script>
 </body>
